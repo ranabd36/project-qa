@@ -7,7 +7,7 @@ import (
 	"github.com/ranabd36/project-qa/config"
 	"log"
 	"os"
-	
+
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
 )
@@ -21,30 +21,30 @@ var (
 func main() {
 	_ = flags.Parse(os.Args[1:])
 	args := flags.Args()
-	
+
 	if len(args) < 1 {
 		flags.Usage()
 		return
 	}
-	
+
 	command := args[1]
-	
+
 	dbstring := getDBString()
-	
+
 	if err := goose.SetDialect(conf.Database.DatabaseDriver); err != nil {
 		log.Fatalf("goose: failed to set dialect: %v\n", err)
 	}
-	
+
 	db, err := sql.Open(conf.Database.DatabaseDriver, dbstring)
 	if err != nil {
 		log.Fatalf("Failed to open DB %v\n", err)
 	}
-	
+
 	var arguments []string
 	if len(args) > 2 {
 		arguments = append(arguments, args[2:]...)
 	}
-	
+
 	if err := goose.Run(command, db, *dir, arguments...); err != nil {
 		log.Fatalf("goose %v: %v", command, err)
 	}
