@@ -13,7 +13,7 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	DatabaseDriver     string
+	DatabaseDriver   string
 	DatabaseHost     string
 	DatabasePort     int
 	DatabaseName     string
@@ -30,7 +30,7 @@ func init() {
 func Get() *Config {
 	return &Config{
 		Database: DatabaseConfig{
-			DatabaseDriver:     getEnvAsString("DATABASE_DRIVER", "mysql"),
+			DatabaseDriver:   getEnvAsString("DATABASE_DRIVER", "mysql"),
 			DatabaseHost:     getEnvAsString("DATABASE_HOST", "localhost"),
 			DatabasePort:     getEnvAsInt("DATABASE_PORT", 3306),
 			DatabaseName:     getEnvAsString("DATABASE_NAME", "mydb"),
@@ -52,7 +52,7 @@ func getEnvAsInt(name string, defaultValue int) int {
 	if value, err := strconv.Atoi(valueStr); err == nil {
 		return value
 	}
-	
+
 	return defaultValue
 }
 
@@ -61,18 +61,18 @@ func getEnvAsBool(name string, defaultValue bool) bool {
 	if val, err := strconv.ParseBool(valStr); err == nil {
 		return val
 	}
-	
+
 	return defaultValue
 }
 
 func getEnvAsSlice(name string, defaultValue []string, sep string) []string {
 	valStr := getEnvAsString(name, "")
-	
+
 	if valStr == "" {
 		return defaultValue
 	}
-	
+
 	val := strings.Split(valStr, sep)
-	
+
 	return val
 }
