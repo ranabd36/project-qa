@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package qaengine;
+
+option go_package = "proto;qaenginepb";
+
+message User {
+  int32 id = 1; // Unique ID for this user.
+  string first_name = 2;
+  string last_name = 3;
+  string username = 4;
+  string email = 5;
+  string password = 6;
+  bool is_active = 7;
+  bool is_admin = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message CreateUserRequest {
+  User user = 1;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {};
+}

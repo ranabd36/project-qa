@@ -8,17 +8,25 @@ import (
 	"strings"
 )
 
-type Config struct {
-	Database DatabaseConfig
-}
+var Database *DatabaseConfig
+var Server *ServerConfig
 
 type DatabaseConfig struct {
-	DatabaseDriver   string
-	DatabaseHost     string
-	DatabasePort     int
-	DatabaseName     string
-	DatabaseUser     string
-	DatabasePassword string
+	Driver   string
+	Host     string
+	Port     int
+	Name     string
+	User     string
+	Password string
+}
+
+type ServerConfig struct {
+	Network  string
+	Host     string
+	Port     int
+	Protocol string
+	CertFile string
+	KeyFile  string
 }
 
 func init() {
@@ -27,18 +35,26 @@ func init() {
 	}
 }
 
-func Get() *Config {
-	return &Config{
-		Database: DatabaseConfig{
-			DatabaseDriver:   getEnvAsString("DATABASE_DRIVER", "mysql"),
-			DatabaseHost:     getEnvAsString("DATABASE_HOST", "localhost"),
-			DatabasePort:     getEnvAsInt("DATABASE_PORT", 3306),
-			DatabaseName:     getEnvAsString("DATABASE_NAME", "mydb"),
-			DatabaseUser:     getEnvAsString("DATABASE_USER", "root"),
-			DatabasePassword: getEnvAsString("DATABASE_PASSWORD", "secret"),
-		},
+func Load() {
+	Server = &ServerConfig{
+		Network:  getEnvAsString("SERVER_NETWORK", "tcp"),
+		Host:     getEnvAsString("SERVER_HOST", "0.0.0.0"),
+		Port:     getEnvAsInt("SERVER_PORT", 50051),
+		Protocol: getEnvAsString("SERVER_PROTOCOL", "http"),
+		CertFile: getEnvAsString("SERVER_CERT_FILE", ""),
+		KeyFile:  getEnvAsString("SERVER_KEY_FILE", ""),
+	}
+	
+	Database = &DatabaseConfig{
+		Driver:   getEnvAsString("DATABASE_DRIVER", "mysql"),
+		Host:     getEnvAsString("DATABASE_HOST", "localhost"),
+		Port:     getEnvAsInt("DATABASE_PORT", 3306),
+		Name:     getEnvAsString("DATABASE_NAME", "mydb"),
+		User:     getEnvAsString("DATABASE_USER", "root"),
+		Password: getEnvAsString("DATABASE_PASSWORD", "secret"),
 	}
 }
+
 
 func getEnvAsString(key string, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
@@ -52,7 +68,7 @@ func getEnvAsInt(name string, defaultValue int) int {
 	if value, err := strconv.Atoi(valueStr); err == nil {
 		return value
 	}
-
+	
 	return defaultValue
 }
 
@@ -61,18 +77,18 @@ func getEnvAsBool(name string, defaultValue bool) bool {
 	if val, err := strconv.ParseBool(valStr); err == nil {
 		return val
 	}
-
+	
 	return defaultValue
 }
 
 func getEnvAsSlice(name string, defaultValue []string, sep string) []string {
 	valStr := getEnvAsString(name, "")
-
+	
 	if valStr == "" {
 		return defaultValue
 	}
-
+	
 	val := strings.Split(valStr, sep)
-
+	
 	return val
 }

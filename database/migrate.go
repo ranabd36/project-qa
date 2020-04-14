@@ -1,9 +1,8 @@
-package main
+package database
 
 import (
 	"database/sql"
 	"flag"
-	"fmt"
 	"github.com/ranabd36/project-qa/config"
 	"log"
 	"os"
@@ -15,7 +14,6 @@ import (
 var (
 	flags = flag.NewFlagSet("goose", flag.ExitOnError)
 	dir   = flags.String("dir", "./database/migrations", "directory with migration files")
-	conf  = config.Get()
 )
 
 func main() {
@@ -50,7 +48,7 @@ func main() {
 	}
 	
 	command := args[0]
-	driver := conf.Database.DatabaseDriver
+	driver := config.Database.Driver
 	dbString := getDBString()
 	
 	switch driver {
@@ -125,29 +123,3 @@ Commands:
 `
 )
 
-func getDBString() string {
-	if conf.Database.DatabaseDriver == "mysql" {
-		return getMysqlDBString()
-	} else if conf.Database.DatabaseDriver == "postgres" {
-		return getPostgresDBString()
-	}
-	return ""
-}
-
-func getPostgresDBString() string {
-	return fmt.Sprintf("user=%v password=%v dbname=%v sslmode=disable",
-		conf.Database.DatabaseUser,
-		conf.Database.DatabasePassword,
-		conf.Database.DatabaseName,
-	)
-}
-
-func getMysqlDBString() string {
-	return fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?parseTime=true",
-		conf.Database.DatabaseUser,
-		conf.Database.DatabasePassword,
-		conf.Database.DatabaseHost,
-		conf.Database.DatabasePort,
-		conf.Database.DatabaseName,
-	)
-}
