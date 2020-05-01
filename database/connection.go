@@ -3,27 +3,26 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
 	"github.com/ranabd36/project-qa/config"
 	"log"
 )
 
-var (
-	Connection *sql.DB
-)
-
-func Connect() {
-	var err error
-	Connection, err = sql.Open(config.Database.Driver, getDBString())
+func Connect() (*sql.DB, error) {
+	
+	db, err := sql.Open(config.Database.Driver, GetDBString())
 	if err != nil {
-		log.Fatalf("Failed while connecting to database, %v\n", err)
+		log.Println(err)
+		return nil, err
 	}
 	
-	if err = Connection.Ping(); err != nil {
-		log.Fatalf("Failed to connect with database, %v\n", err)
+	if err = db.Ping(); err != nil {
+		return nil, err
 	}
+	return db, nil
 }
 
-func getDBString() string {
+func GetDBString() string {
 	if config.Database.Driver == "mysql" {
 		return getMysqlDBString()
 	} else if config.Database.Driver == "postgres" {

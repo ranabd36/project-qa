@@ -1,9 +1,10 @@
-package database
+package main
 
 import (
 	"database/sql"
 	"flag"
 	"github.com/ranabd36/project-qa/config"
+	"github.com/ranabd36/project-qa/database"
 	"log"
 	"os"
 	
@@ -17,6 +18,7 @@ var (
 )
 
 func main() {
+	config.Load()
 	flags.Usage = usage
 	_ = flags.Parse(os.Args[1:])
 	
@@ -49,7 +51,7 @@ func main() {
 	
 	command := args[0]
 	driver := config.Database.Driver
-	dbString := getDBString()
+	dbString := database.GetDBString()
 	
 	switch driver {
 	case "postgres", "mysql", "sqlite3", "redshift":

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"github.com/ranabd36/project-qa/config"
 	"github.com/ranabd36/project-qa/database"
-	qaenginepb "github.com/ranabd36/project-qa/proto"
-	"github.com/ranabd36/project-qa/services/user"
+	"github.com/ranabd36/project-qa/database/store/postgres"
+	"github.com/ranabd36/project-qa/pb"
+	"github.com/ranabd36/project-qa/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
@@ -17,12 +18,16 @@ import (
 
 func init() {
 	config.Load()
-	database.Connect()
 }
 
 func main() {
 	// if we crash the go code, we get the file name and line number
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	
+	db, err := database.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	lis, err := net.Listen(config.Server.Network, fmt.Sprintf("%v:%v", config.Server.Host, config.Server.Port))
 	
@@ -42,12 +47,11 @@ func main() {
 	}
 	
 	s := grpc.NewServer(opts...)
-	//Register QA Engine Server
-	qaenginepb.RegisterUserServiceServer(s, &user.UserServer{})
-	//qaenginepb.RegisterQAEngineServiceServer(s, &services.QAServer{})
-	//qaenginepb.RegisterQAEngineServiceServer(s, &services.QAServer{})
-	//qaenginepb.RegisterQAEngineServiceServer(s, &services.QAServer{})
-	//qaenginepb.RegisterQAEngineServiceServer(s, &services.QAServer{})
+	//Register USer Service Server
+	store := postgres.NewStore(db)
+	userServiceServer := services.NewUserServiceServer(store)
+	//questionServiceServer := services.NewNewQuestionServiceServer(store)
+	pb.RegisterUserServiceServerServer(s, userServiceServer)
 	
 	reflection.Register(s)
 	
@@ -65,7 +69,7 @@ func main() {
 	<-ch
 	
 	//Close database connection
-	if err := database.Connection.Close(); err != nil {
+	if err := db.Close(); err != nil {
 		log.Fatalf("Error on closing database connection : %v", err)
 	}
 	
