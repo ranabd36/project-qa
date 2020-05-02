@@ -46,11 +46,21 @@ func main() {
 		opts = append(opts, grpc.Creds(creds))
 	}
 	
-	s := grpc.NewServer(opts...)
 	//Register USer Service Server
 	store := postgres.NewStore(db)
+	jwtManager := services.NewJWTManager(config.Auth.SecretKey, config.Auth.TokenDuration)
+	authServer := services.NewAuthServer(store, jwtManager)
 	userServiceServer := services.NewUserServiceServer(store)
+	authInterceptor := services.NewAuthInterceptor(jwtManager, accessibleRoles())
+	
+	opts = append(opts, grpc.UnaryInterceptor(authInterceptor.Unary()))
+	opts = append(opts, grpc.StreamInterceptor(authInterceptor.Stream()))
+	
+	s := grpc.NewServer(opts...)
+	
+	
 	//questionServiceServer := services.NewNewQuestionServiceServer(store)
+	pb.RegisterAuthServiceServer(s, authServer)
 	pb.RegisterUserServiceServerServer(s, userServiceServer)
 	
 	reflection.Register(s)
@@ -80,4 +90,17 @@ func main() {
 	//Stop the server
 	s.Stop()
 	
+}
+
+func accessibleRoles() map[string][]string {
+	const userServicePath = "/ranabd36.qaengine.UserService/"
+	return map[string][]string{
+		userServicePath + "FindUser":       {"admin", "user"},
+		userServicePath + "UpdateUser":     {"admin", "user"},
+		userServicePath + "ChangePassword": {"admin", "user"},
+		userServicePath + "DeleteUser":     {"admin"},
+		userServicePath + "ToggleAdmin":    {"admin"},
+		userServicePath + "ToggleActive":   {"admin"},
+		userServicePath + "CreateUser":     {"admin"},
+	}
 }

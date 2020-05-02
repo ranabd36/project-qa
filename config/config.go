@@ -6,10 +6,12 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var Database *DatabaseConfig
 var Server *ServerConfig
+var Auth *AuthConfig
 
 type DatabaseConfig struct {
 	Driver   string
@@ -27,6 +29,11 @@ type ServerConfig struct {
 	Protocol string
 	CertFile string
 	KeyFile  string
+}
+
+type AuthConfig struct {
+	SecretKey     string
+	TokenDuration time.Duration
 }
 
 func init() {
@@ -53,8 +60,12 @@ func Load() {
 		User:     getEnvAsString("DATABASE_USER", "root"),
 		Password: getEnvAsString("DATABASE_PASSWORD", "secret"),
 	}
+	
+	Auth = &AuthConfig{
+		SecretKey:     getEnvAsString("AUTH_SECRET_KEY", "secret"),
+		TokenDuration: time.Duration(getEnvAsInt("AUTH_TOKEN_DURATION", 900)),
+	}
 }
-
 
 func getEnvAsString(key string, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
